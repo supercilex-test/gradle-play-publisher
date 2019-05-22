@@ -1,12 +1,17 @@
 package com.github.triplet.gradle.play
 
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.FixMethodOrder
 import org.junit.Test
+import org.junit.runners.MethodSorters
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class GenerateResourcesTest {
     @Test
     fun `Basic resources are correctly copied to their respective folders`() {
@@ -23,7 +28,22 @@ class GenerateResourcesTest {
         "release/res/products/sku.json" generated "src/main/play/products/sku.json"()
     }
 
-    // TODO add test making sure source files doesn't change
+    @Test
+    fun `000 Make sure that source files aren't touched`() {
+        fun hash() = File(FIXTURE_WORKING_DIR, "src").walkTopDown().map {
+            if (it.isFile) {
+                Files.asByteSource(it).hash(Hashing.sha256())
+            } else {
+                Hashing.sha256().hashUnencodedChars(it.name)
+            }
+        }.toList()
+
+        val prev = hash()
+        execute("", "clean", "generateReleasePlayResources")
+        val now = hash()
+
+        assertEquals(prev, now)
+    }
 
     @Test
     fun `Various build types override main variant fallbacks`() {
@@ -239,7 +259,7 @@ class GenerateResourcesTest {
     }
 
     @Test
-    fun `Graphics language merge only across categories`() {
+    fun `Graphics aren't merged across languages`() {
         // language=gradle
         val config = """
             flavorDimensions 'pricing', 'server'
@@ -255,9 +275,9 @@ class GenerateResourcesTest {
 
         "prodStagingRelease/res/listings/fr-FR/graphics/phone-screenshots/foo.jpg".exists(no)
         "prodStagingRelease/res/listings/fr-FR/graphics/phone-screenshots/bar.jpg".exists()
-        "prodStagingRelease/res/listings/fr-FR/graphics/tablet-screenshots/baz.jpg".exists()
-        "prodStagingRelease/res/listings/de-DE/graphics/phone-screenshots/foo.jpg".exists()
-        "prodStagingRelease/res/listings/de-DE/graphics/tablet-screenshots/baz.jpg".exists()
+        "prodStagingRelease/res/listings/fr-FR/graphics/tablet-screenshots/baz.jpg".exists(no)
+        "prodStagingRelease/res/listings/de-DE/graphics/phone-screenshots/foo.jpg".exists(no)
+        "prodStagingRelease/res/listings/de-DE/graphics/tablet-screenshots/baz.jpg".exists(no)
     }
 
     @Test
