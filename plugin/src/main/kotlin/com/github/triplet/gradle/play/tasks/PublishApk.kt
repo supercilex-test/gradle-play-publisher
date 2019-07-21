@@ -54,6 +54,7 @@ abstract class PublishApk @Inject constructor(
 
     @TaskAction
     fun publishApks() {
+        error("Some crash")
         val apks = inputApks.orEmpty().mapNotNull(File::orNull).ifEmpty { return }
 
         project.delete(temporaryDir) // Make sure previous executions get cleared out

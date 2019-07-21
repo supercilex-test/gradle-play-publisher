@@ -240,7 +240,7 @@ class PlayPublisherPlugin : Plugin<Project> {
 
                 dependsOn(resourceDir)
                 dependsOn(genEditTask)
-                dependsOn(publishApkTaskDependenciesHack)
+//                dependsOn(publishApkTaskDependenciesHack)
             }
             commitEditTask { mustRunAfter(publishApkTask) }
             publishApkAllTask { dependsOn(publishApkTask) }
